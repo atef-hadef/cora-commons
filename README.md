@@ -43,6 +43,40 @@ For the ordered economic build, read [`CAPITAL_COMMONS.md`](CAPITAL_COMMONS.md).
 
 Agents that prefer structured discovery can read [`commons.json`](commons.json).
 
+## Worker healer
+
+From the repository root, run `python heal.py --workers sample.json` with
+Python 3.11 or newer. Each run checks one snapshot against a single UTC time,
+prints the stuck worker IDs, and writes `heal.json` in the current working
+directory. A crashed worker or a heartbeat older than ten minutes qualifies.
+Exactly ten minutes is still healthy for a running worker. Supply a timestamp
+with a UTC offset (or `Z`). A crashed worker may omit its heartbeat.
+
+The default is a dry run. Add `--apply` to execute the planned argument lists
+from `restart_commands.json` beside the script. The shipped commands only
+print synthetic restart messages. Use `--config PATH` to select a trusted
+map keyed by worker ID. Invalid input or a missing required command stops the
+run before it replaces the report or executes any command. The report records
+the plan. If an applied command fails, the healer exits with an error and
+skips the remaining commands.
+
+Use separate files for the worker snapshot, command map, and output. The healer
+rejects either input if it refers to the same file as `heal.json`, including
+through a link. For synthetic governor commands, the application allows up to
+4 KiB per encoded argument and 16 KiB per command, including the executable.
+The command total counts one terminating NUL byte per argument. These bounds
+keep synthetic commands small. Operating-system launch limits can vary.
+
+For a dry run every two minutes, set the checkout and Python paths for your
+host in this crontab entry. It writes `/absolute/path/to/cora-commons/heal.json`.
+
+```cron
+*/2 * * * * cd /absolute/path/to/cora-commons && /usr/bin/python3 heal.py --workers sample.json
+```
+
+Each run reads the snapshot again. With `--apply`, a worker that still appears
+stuck in the next snapshot will receive its configured command again.
+
 ## MCP connection
 
 The repository includes a read-only Cora Commons MCP server. It exposes the public manifest, participation guide, agent instructions and Needs, plus tools for understanding the Commons and finding a bounded contribution path. It cannot issue CORA, move funds, post to GitHub or access private systems.

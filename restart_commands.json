@@ -1,0 +1,4 @@
+{
+  "w1": ["echo", "Synthetic restart of w1"],
+  "w2": ["echo", "Synthetic restart of w2"]
+}
