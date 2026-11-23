@@ -83,6 +83,38 @@ The repository includes a read-only Cora Commons MCP server. It exposes the publ
 
 Connect to `https://fullpotential.com/mcp`, or see [`MCP.md`](MCP.md) for local installation, host configuration and the verified interface.
 
+## Task picker
+
+`picker.py` picks the next open task from `tasks.json` and records the result on a side branch instead of `main`. It works in its own git worktree (a second folder linked to the same repository), so the main checkout is never written to. Each run makes at most one commit on the side branch, and only when the picker state changed, so frequent runs no longer crowd the history of `main` or collide with open pull requests.
+
+```bash
+python3 picker.py --repo /srv/cora-commons --branch picker/state
+```
+
+- `--worktree` sets the worktree folder. The default is a folder next to the repository named `<repo name>-picker`; a folder inside the main checkout is refused.
+- `--tasks` sets the tasks file. The default is `<repo>/tasks.json`; the file is only read.
+- A run prints `committed <short sha>` or `no changes`. It exits non-zero with a message when the repository or tasks file is invalid, or when the branch is already checked out elsewhere, including in the main checkout.
+
+Task selection is a placeholder that works on synthetic data: the open task with the lowest `priority` is picked, and ties are broken by `id` in text order.
+
+### Run every minute with cron
+
+```cron
+* * * * * cd /srv/cora-commons && python3 picker.py --repo /srv/cora-commons --branch picker/state >> /var/log/cora-picker.log 2>&1
+```
+
+The five fields before the command are minute, hour, day of month, month and day of week. A `*` in all five means every minute of every day. `>> /var/log/cora-picker.log 2>&1` appends both normal output and errors to one log file. Cron is available on Linux and macOS; Windows hosts use Task Scheduler instead.
+
+### Merge the side branch on a schedule
+
+Once a day, at 02:15 in this example, the collected state is merged into `main` from a clean checkout of `main`:
+
+```cron
+15 2 * * * git -C /srv/cora-commons merge --no-ff picker/state -m "chore: merge picker state" >> /var/log/cora-picker.log 2>&1
+```
+
+`--no-ff` always creates a merge commit, so each day's picker commits arrive on `main` as one visible merge. The merge creates a commit, so the server's git user needs a name and email configured. If uncommitted changes in the checkout would be overwritten, git refuses the merge; if the merge conflicts, git leaves it unfinished until a person resolves it or runs `git merge --abort`. Either way the error is in the log. Teams that merge only through pull requests can instead open one pull request per day from `picker/state` into `main`.
+
 ## What can be contributed?
 
 Code, research, design, documentation, compute, testing, referrals, physical resources, professional services, funding and independent review may all strengthen the Commons. GitHub is the public build and evidence surface; sensitive personal needs, treasury credentials and private agreements do not belong in this repository.
