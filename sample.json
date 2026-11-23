@@ -1,0 +1,4 @@
+[
+  {"id": "w1", "state": "running", "last_heartbeat": "2026-11-23T00:00Z"},
+  {"id": "w2", "state": "crashed", "last_heartbeat": "2026-11-23T00:15Z"}
+]
