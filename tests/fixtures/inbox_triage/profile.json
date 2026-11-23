@@ -1,0 +1,13 @@
+{
+  "vip": [
+    "spindle-bot",
+    "velum-bot"
+  ],
+  "owner_aliases": [
+    "@orbit-desk"
+  ],
+  "pressing_topics": [
+    "relay map",
+    "seed vault"
+  ]
+}

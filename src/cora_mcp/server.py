@@ -25,6 +25,7 @@ from .catalog import (
     recognition_board,
     search,
 )
+from .inbox_triage import triage
 from .steward import review_event
 from .team_report import report_for
 
@@ -373,6 +374,12 @@ def team_report(date: str) -> str:
     """Roll one day's public stand-up records into a Markdown team report."""
     report, _warnings = report_for(REPO_ROOT, date)
     return report
+
+
+@mcp.tool(annotations=READ_ONLY)
+def inbox_triage(messages: list[dict[str, object]], profile: dict[str, object], now: str) -> dict[str, object]:
+    """Filter and rank supplied inbox messages at a fixed timestamp."""
+    return triage(messages, profile, now)
 
 
 @mcp.prompt()

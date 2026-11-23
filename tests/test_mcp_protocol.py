@@ -32,6 +32,7 @@ class MCPProtocolTests(unittest.IsolatedAsyncioTestCase):
                     "recognition_path",
                     "steward_review_event",
                     "team_report",
+                    "inbox_triage",
                 ],
             )
             for tool in result.tools:
